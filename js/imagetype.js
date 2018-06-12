@@ -31,26 +31,48 @@ function depictImages(options) {
     });
 }  
 
-function getFont() {
-    var ratio = 0.09;
-    var size = ctx.canvas.width * ratio;   
-    return (size|0) + 'px Times New Roman Bold';
+function getFontSize(txt) {
+    var fontSize = 400,
+        textWidth,
+        fontSizeResult;
+    function measureText(fontSize, callback) {    
+      ctx.font = fontSize*4.5 + 'px Times New Roman Bold';
+      ctx.fillText(txt, 0, 100);
+      textWidth = (ctx.measureText(txt).width|0);
+      ctx.canvas.width = ctx.canvas.width;
+      callback(textWidth);
+    }
+    (function resizeText() {
+      measureText(fontSize, function(textWidth) {
+        if (ctx.canvas.width < textWidth) {
+          // console.log(ctx.canvas.width, textWidth, fontSize, ctx.font);
+          // console.log('fontSize has to be cropped!');
+          fontSize = fontSize - 20;          
+          resizeText();
+        } 
+        if (ctx.canvas.width > textWidth) {
+          // console.log(ctx.canvas.width, textWidth, fontSize, ctx.font);
+          // console.log('Finally fontSize cropped!');
+          fontSizeResult = fontSize;
+        }
+      });      
+    })();
+    return fontSizeResult;
 }
 
-function getFontTop() {
+function getFontTopPosition() {
     return Math.round(ctx.canvas.height * 0.12);
 }
 
 function setImages(txt) {
   window.stop();
-
   var i, data32,
       distance = 2;                                                                          
   imgs = [];
   ctx.canvas.width = ctx.canvas.width;              // clear canvas so we can
 
-  ctx.font = getFont();
-  ctx.fillText(txt, 0, getFontTop());  
+  ctx.font = getFontSize(txt) + 'px Times New Roman Bold';
+  ctx.fillText(txt, 0, getFontTopPosition());  
 
   // get a Uint32 representation of the bitmap:
   data32 = new Uint32Array(ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data.buffer);
@@ -71,12 +93,10 @@ function setImages(txt) {
     }
   }
     imgs.forEach(depictImages);
-    // setTimeout(function() {
-    //   window.stop();
-    // },30000);
 }
 
 setImages(inp.value);
+
 window.onresize = function() {
   window.stop();
   ctx.canvas.width = ctx.canvas.width; 
