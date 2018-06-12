@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Typographic Experiment #2</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body> 
+        <label>Type some text: <input value="unicorn"></label><br>
+        <canvas></canvas>
+        <script>
+
+        var ctx = document.querySelector("canvas").getContext("2d"),
+            inp = document.querySelector("input");
+        ctx.canvas.width  = window.innerWidth;
+        ctx.canvas.height = window.innerHeight;   
+        var w = ctx.canvas.width,
+            h = ctx.canvas.height,
+            rects = [];                                     // global rectangle array
+
+        generate(inp.value);                                // init default text
+        inp.onkeyup = function() { generate(this.value) };  // get some text to demo
+
+        function generate(txt) {
+          var i, 
+              distance = 4,                                 // rectangle radius
+              data32,                                       // we'll use uint32 for speed
+              colors = [
+                'rgba(0, 64, 255)',    // blue
+                'rgba(245, 221, 0)',   // yellow
+                'rgba(226, 60, 0)',    // red
+              ];
+          rects = [];                                       // clear rectangle array
+          ctx.clearRect(0, 0, w, h);                        // clear canvas so we can
+          ctx.font = "40px Helvetica";
+          ctx.fillText(txt, 0, 50);                         // draw the text (default 10px)
+          
+          // get a Uint32 representation of the bitmap:
+          data32 = new Uint32Array(ctx.getImageData(0, 0, w, h).data.buffer);
+
+          // loop through each pixel. We will only store the ones with alpha = 255
+          for(i = 0; i < data32.length; i++) {
+            if (data32[i] & 0xff000000) {                 // check if pixel is black
+              rects.push({                                // add new rectangle
+                x: (i % w) * distance * 2 + distance,     // use position and radius to
+                y: ((i / w)|0) * distance * 2 + distance, // pre-calc final position and size
+                width: Math.round(Math.random()*10),
+                height: Math.round(Math.random()*10),
+                color: colors[Math.floor(Math.random()*colors.length)]
+              });
+            }
+          }
+          show();
+          // return array - here we'll animate it directly to show the resulting objects:
+        }
+
+          function show() {
+              ctx.clearRect(0, 0, w, h);
+              for(var i = 0, rectangle; rectangle = rects[i]; i++) {
+                ctx.fillStyle = rectangle.color;
+                ctx.beginPath();
+                ctx.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+                ctx.closePath();
+                ctx.fill();
+              }
+          }        
+
+        // (function animate() {
+        //   ctx.clearRect(0, 0, w, h);
+        //   ctx.beginPath();
+        //   for(var i = 0, rectangle; rectangle = rects[i]; i++) {
+        //     var dx = Math.sin(rectangle.a * 0.2) + rectangle.radius,   // do something funky
+        //         dy = Math.cos(rectangle.a++ * 0.2) + rectangle.radius;
+        //     ctx.moveTo(rectangle.x + rectangle.radius + dx, rectangle.y + dy);
+        //     ctx.arc(rectangle.x + dx, rectangle.y + dy, rectangle.radius, 0, 6.28);
+        //     ctx.closePath();
+        //   }
+        //   ctx.fill();
+        //   requestAnimationFrame(animate);
+        // })();
+        </script>   
+    </body>
+</html>

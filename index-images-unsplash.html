@@ -1,0 +1,78 @@
+<!-- https://stackoverflow.com/questions/8404937/drawing-multiple-images-on-one-canvas -->
+
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Typographic Experiment #2</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body> 
+        <label>Type some text: <input value="dog"></label><br>
+        <canvas></canvas>
+        <script src="js/getimages.js"></script>
+        <script>
+          var ctx = document.querySelector("canvas").getContext("2d"),
+              inp = document.querySelector("input");
+          
+          ctx.canvas.width  = window.innerWidth;
+          ctx.canvas.height = window.innerHeight; 
+             
+          var w = ctx.canvas.width,
+              h = ctx.canvas.height,
+              rects = [];                                     
+
+          function generate(txt, callback) {
+            var i, 
+                distance = 4,                                 
+                data32;                                       // we'll use uint32 for speed
+            rects = [];                                       // clear rectangle array
+            imgs = [];
+            ctx.canvas.width = ctx.canvas.width;              // clear canvas so we can
+            ctx.font = "100px Times New Roman";
+            ctx.fillText(txt, 0, 70);                         // draw the text (default 10px)
+            
+            // get a Uint32 representation of the bitmap:
+            data32 = new Uint32Array(ctx.getImageData(0, 0, w, h).data.buffer);
+
+            ctx.canvas.width = ctx.canvas.width;
+            // loop through each pixel. We will only store the ones with alpha = 255
+
+            for (i=0; i<10; i++) {
+              imgs.push({
+
+              });
+              var img = new Image();
+                  width = Math.round(Math.max(50,(100*Math.random())));
+                  height = Math.round(Math.max(50,(100*Math.random())));
+                  img.src = 'https://source.unsplash.com/'+width+'x'+height+'/?'+inp.value;
+
+            }
+
+            for(i = 0; i < data32.length; i++) {
+              if (data32[i] & 0xff000000) {                  
+                  img.onload = (function() {
+                      if (Math.random() > 0.66) { 
+                      ctx.drawImage(img, ((i % w) * distance * 2 + distance), (((i / w)|0) * distance * 2 + distance));
+                      }
+                  })(i);
+                
+              }
+            }
+            callback();
+          }
+          
+          generate(inp.value, function() {
+              setTimeout(function() {
+                 generate(inp.value, function() {
+                 });               
+              }, 2500);
+          });
+
+          inp.onkeyup = function() { generate(this.value) };  // get some text to demo   
+        </script>   
+    </body>
+</html>
